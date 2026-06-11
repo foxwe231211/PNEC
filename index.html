@@ -2,6 +2,7 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mini Search Engine</title>
 
 <style>
@@ -15,6 +16,7 @@ body{
 
 h1{
     margin-top:40px;
+    font-size:32px;
 }
 
 .search-box{
@@ -50,10 +52,12 @@ button{
     background:#1e293b;
     border-radius:20px;
     cursor:pointer;
+    transition:0.3s;
 }
 
 .tab.active{
     background:#38bdf8;
+    color:black;
 }
 
 .results{
@@ -65,16 +69,23 @@ button{
     background:#1e293b;
     margin:10px auto;
     padding:15px;
-    width:70%;
+    width:80%;
     border-radius:10px;
+    text-align:left;
+}
+
+.result-item a{
+    color:#38bdf8;
+    text-decoration:none;
 }
 
 img{
-    max-width:300px;
+    max-width:100%;
     border-radius:10px;
 }
 </style>
 </head>
+
 <body>
 
 <h1>🔎 Mini Search Engine</h1>
@@ -85,9 +96,9 @@ img{
 </div>
 
 <div class="tabs">
-    <div class="tab active" onclick="setTab('web')">Web</div>
-    <div class="tab" onclick="setTab('images')">Images</div>
-    <div class="tab" onclick="setTab('videos')">Videos</div>
+    <div class="tab active" onclick="setTab('web', event)">Web</div>
+    <div class="tab" onclick="setTab('images', event)">Images</div>
+    <div class="tab" onclick="setTab('videos', event)">Videos</div>
 </div>
 
 <div class="results" id="results"></div>
@@ -95,29 +106,36 @@ img{
 <script>
 let currentTab = "web";
 
-function setTab(tab){
+function setTab(tab, e){
     currentTab = tab;
 
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    event.target.classList.add("active");
+    e.target.classList.add("active");
 
     search();
 }
 
 function search(){
-    let q = document.getElementById("searchInput").value;
+    let q = document.getElementById("searchInput").value.trim();
     let results = document.getElementById("results");
 
-    results.innerHTML = "Loading...";
+    if(q === ""){
+        results.innerHTML = "⚠️ اكتب كلمة بحث أولاً";
+        return;
+    }
+
+    results.innerHTML = "⏳ جاري البحث...";
 
     if(currentTab === "web"){
         fetch(`https://api.duckduckgo.com/?q=${q}&format=json`)
         .then(res => res.json())
         .then(data => {
+
             let html = "";
 
-            if(data.RelatedTopics.length === 0){
-                html = "No results found";
+            if(!data.RelatedTopics || data.RelatedTopics.length === 0){
+                results.innerHTML = "❌ لا توجد نتائج";
+                return;
             }
 
             data.RelatedTopics.forEach(item => {
@@ -125,7 +143,7 @@ function search(){
                     html += `
                     <div class="result-item">
                         <h3>${item.Text}</h3>
-                        <a href="${item.FirstURL}" target="_blank">فتح الرابط</a>
+                        <a href="${item.FirstURL}" target="_blank">🔗 فتح الرابط</a>
                     </div>`;
                 }
             });
@@ -135,11 +153,11 @@ function search(){
     }
 
     else if(currentTab === "images"){
-        let imgURL = `https://source.unsplash.com/500x300/?${q}`;
+        let imgURL = `https://source.unsplash.com/600x400/?${q}`;
 
         results.innerHTML = `
         <div class="result-item">
-            <h3>Image result</h3>
+            <h3>🖼 Image Result</h3>
             <img src="${imgURL}">
         </div>`;
     }
@@ -149,7 +167,7 @@ function search(){
 
         results.innerHTML = `
         <div class="result-item">
-            <h3>Video results</h3>
+            <h3>🎬 Video Results</h3>
             <a href="${yt}" target="_blank">فتح نتائج الفيديو على يوتيوب</a>
         </div>`;
     }
