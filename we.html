@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Mini Search Engine</title>
+
+<style>
+body{
+    font-family: Arial;
+    margin:0;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+}
+
+h1{
+    margin-top:40px;
+}
+
+.search-box{
+    margin-top:20px;
+}
+
+input{
+    width:60%;
+    padding:15px;
+    border-radius:30px;
+    border:none;
+    outline:none;
+    font-size:18px;
+}
+
+button{
+    padding:12px 20px;
+    border:none;
+    border-radius:20px;
+    background:#38bdf8;
+    cursor:pointer;
+    margin-left:10px;
+}
+
+.tabs{
+    margin-top:20px;
+}
+
+.tab{
+    display:inline-block;
+    padding:10px 20px;
+    margin:5px;
+    background:#1e293b;
+    border-radius:20px;
+    cursor:pointer;
+}
+
+.tab.active{
+    background:#38bdf8;
+}
+
+.results{
+    margin-top:30px;
+    padding:20px;
+}
+
+.result-item{
+    background:#1e293b;
+    margin:10px auto;
+    padding:15px;
+    width:70%;
+    border-radius:10px;
+}
+
+img{
+    max-width:300px;
+    border-radius:10px;
+}
+</style>
+</head>
+<body>
+
+<h1>🔎 Mini Search Engine</h1>
+
+<div class="search-box">
+    <input type="text" id="searchInput" placeholder="ابحث هنا...">
+    <button onclick="search()">بحث</button>
+</div>
+
+<div class="tabs">
+    <div class="tab active" onclick="setTab('web')">Web</div>
+    <div class="tab" onclick="setTab('images')">Images</div>
+    <div class="tab" onclick="setTab('videos')">Videos</div>
+</div>
+
+<div class="results" id="results"></div>
+
+<script>
+let currentTab = "web";
+
+function setTab(tab){
+    currentTab = tab;
+
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    event.target.classList.add("active");
+
+    search();
+}
+
+function search(){
+    let q = document.getElementById("searchInput").value;
+    let results = document.getElementById("results");
+
+    results.innerHTML = "Loading...";
+
+    if(currentTab === "web"){
+        fetch(`https://api.duckduckgo.com/?q=${q}&format=json`)
+        .then(res => res.json())
+        .then(data => {
+            let html = "";
+
+            if(data.RelatedTopics.length === 0){
+                html = "No results found";
+            }
+
+            data.RelatedTopics.forEach(item => {
+                if(item.Text){
+                    html += `
+                    <div class="result-item">
+                        <h3>${item.Text}</h3>
+                        <a href="${item.FirstURL}" target="_blank">فتح الرابط</a>
+                    </div>`;
+                }
+            });
+
+            results.innerHTML = html;
+        });
+    }
+
+    else if(currentTab === "images"){
+        let imgURL = `https://source.unsplash.com/500x300/?${q}`;
+
+        results.innerHTML = `
+        <div class="result-item">
+            <h3>Image result</h3>
+            <img src="${imgURL}">
+        </div>`;
+    }
+
+    else if(currentTab === "videos"){
+        let yt = `https://www.youtube.com/results?search_query=${q}`;
+
+        results.innerHTML = `
+        <div class="result-item">
+            <h3>Video results</h3>
+            <a href="${yt}" target="_blank">فتح نتائج الفيديو على يوتيوب</a>
+        </div>`;
+    }
+}
+</script>
+
+</body>
+</html>
